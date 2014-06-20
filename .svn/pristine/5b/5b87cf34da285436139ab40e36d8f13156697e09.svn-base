@@ -1,0 +1,31 @@
+<loader version="1.0">
+	<application id="PinBroadcast">
+		<name >
+			Pin Broadcast
+		</name>
+		<description >
+			Send thousands of Bulk Pin messages easily
+		</description>
+		<version >
+			1.2
+		</version>
+		<vendor >
+			StackArena
+		</vendor>
+		<copyright >
+			Copyright (c) 2012 StackArena
+		</copyright>
+		<fileset Java="1.54" _blackberryVersion="[5.0.0)">
+			<directory >
+				5.0.0
+			</directory>
+			<files >
+				PinBroadcast.cod
+
+			</files>
+
+		</fileset>
+
+	</application>
+
+</loader>

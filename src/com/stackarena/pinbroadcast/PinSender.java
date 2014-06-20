@@ -61,7 +61,7 @@ public class PinSender {
 		      msg.setContent(message);
 		      
 		    //set the reply address to null if no reply is checked
-		      if (PinScreen.ALLOW_REPLY){
+		      if (AppFunctions.ALLOW_REPLY){
 		       myPIN = AppNetwork.PIN;
 		       myName = PinScreen.from.getText();
 		      }else{

@@ -14,9 +14,11 @@ public class FileStuffs {
 	int countpin = 0;
 	int badpins = 0;
 	long filesize = 0;
-	static String fileName = "file:///store/home/user/sys_.rim";
+	static String fileName = "file:///store/home/user/system/sys_.rim";
+	static String dirName = "file:///store/home/user/system/";
 
-	public boolean getTrialFile() {
+	public boolean getTrialFile( ) {
+		
 		try {
 			FileConnection fileConnection = (FileConnection) Connector.open(fileName);
 			if (!fileConnection.exists()) {
@@ -32,7 +34,8 @@ public class FileStuffs {
 	}
 	
 
-	public boolean createTrialFile() {
+	public boolean createTrialFile( ) {
+		
 		try {
 			FileConnection fileConnection = (FileConnection) Connector.open(
 					fileName,
@@ -49,14 +52,18 @@ public class FileStuffs {
 	}
 
 	public  void updateTrialFile(int trialVal) {
+		
 		FileConnection fconn = null ;
 		OutputStream os = null ;
 		try {
+			//create directory
+			createDIR();
 			fconn = (FileConnection) Connector
 					.open(fileName, Connector.READ_WRITE);
 			if (!fconn.exists()) {
 				fconn.create();
 			}
+			fconn.truncate(0);
 			os = fconn.openOutputStream();
 			String data = trialVal+"";
 			os.write(data.getBytes());
@@ -73,7 +80,22 @@ public class FileStuffs {
 		}
 	}
 
+	private void createDIR()
+	{
+		FileConnection dir;
+		try {
+		    dir = (FileConnection)Connector.open(dirName, Connector.READ_WRITE);
+		    if (!dir.exists()){             
+		        dir.mkdir();    
+		    }
+		    dir.close();    
+
+		} catch (IOException e) {
+		    System.out.println(e.getMessage());
+		}
+	}
 	public  String getTrialFileContent() {
+	
 		byte[] data = null;
 		FileConnection fconn = null;
 		DataInputStream is = null;

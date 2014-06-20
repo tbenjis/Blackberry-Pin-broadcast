@@ -26,8 +26,8 @@ public class AppNetwork {
 		public void run() {
 			String vrfy = "";
 			try {
-				vrfy = HTTPClient.getResponse(PinScreen.SERVERURL
-						+ "api/subscription/" + PinScreen.APPID + "/" + PIN
+				vrfy = HTTPClient.getResponse(AppFunctions.SERVERURL
+						+ "api/subscription/" + AppFunctions.APPID + "/" + PIN
 						+ "/" + OS);
 			} catch (final Exception e) {
 				System.out.println(e.toString());
@@ -43,7 +43,7 @@ public class AppNetwork {
 		new Thread(verifyMe).start();
 		if (!silent) {
 			synchronized (UiApplication.getEventLock()) {
-				Status.show("Verifying your account...", 5000);
+				Status.show("Verifying your account...", 4000);
 			}
 		}
 	}
@@ -65,9 +65,12 @@ public class AppNetwork {
 	public void finishVerify() {
 		// Start event for verify here...
 		UiApplication.getUiApplication().invokeLater(new Runnable() {
+			private int MAXCount;
+
 			public void run() {
 
-				if (verifystatus == null || verifystatus == "") {
+				if (verifystatus.equals("0") || verifystatus == null
+						|| verifystatus == "") {
 					// ntwk issue retry activation or continue
 					if (!silent) {
 						int response = Dialog
@@ -84,40 +87,40 @@ public class AppNetwork {
 				} else if (verifystatus.equals("1")) // success/registered
 				{
 					if (!silent) {
-						Dialog.alert("Your account has been verified!");
+						Dialog.alert("Your account has been verified!, "
+								+ verifydetails + " messages added.");
 					}
-					PinScreen.userActivated = true;
-					PinScreen.lblTrial.setText("Expires: " + verifydetails
-							+ " days(s)");
-					PinScreen.info
-							.setText("Account verified. Subscription expiries in "
-									+ verifydetails + " days(s)");
 
-				} else if (verifystatus.equals("2")) // success/registered
-				{
-					int response = Dialog
-							.ask(Dialog.D_YES_NO,
-									"You have not registered your device for this app. \n"
-											+ " \nDo you want to register?",
-									Dialog.YES);
-					// info.setText(details + " now available.");
-					if (Dialog.YES == response) {
-						// goto weblink on browser
-						WebIcon webIcon = new WebIcon();
-						webIcon.launchBrowser(webIcon.BIS_BROWSER,
-								verifydetails);
+					FileStuffs fs = new FileStuffs();
+					boolean exists = fs.getTrialFile();
+					if (exists) {
+						try{
+							String fcontent = fs.getTrialFileContent();
+							MAXCount = Integer.parseInt(fcontent);
+							MAXCount = Integer.parseInt(verifydetails)+ MAXCount;
+							
+							AppFunctions.trialUpdate(MAXCount);		
+							AppFunctions.trialCount = MAXCount;
+						}catch(Exception e){}
+
+					} else {
+						int newMAX = Integer.parseInt(verifydetails)
+								+ AppFunctions.MAX_TRIAL;
+						AppFunctions.trialUpdate(newMAX);
+						AppFunctions.trialCount = newMAX;
 					}
-					PinScreen.userActivated = false;
+					PinScreen.lblTrial.setText("Messages Left: " + AppFunctions.formatNumber(AppFunctions.trialCount, 0, ","));
+					
 
 				} else // account not verified display error message
 				{
 					if (!silent) {
-						Dialog.alert("Account Verification Error \n\n"
-								+ verifydetails);
+						Dialog.alert("Account Verification Error "
+								+ verifydetails + " messages added.");
 					}
-					PinScreen.userActivated = false;
 
 				}
+			
 			}
 		});
 	}
@@ -134,9 +137,9 @@ public class AppNetwork {
 		public void run() {
 			String updt = "";
 			try {
-				updt = HTTPClient.getResponse(PinScreen.SERVERURL
-						+ "api/version/" + PinScreen.APPID + "/"
-						+ PinScreen.APPVERSION);
+				updt = HTTPClient.getResponse(AppFunctions.SERVERURL
+						+ "api/version/" + AppFunctions.APPID + "/"
+						+ AppFunctions.APPVERSION);
 			} catch (final Exception e) {
 				System.out.println(e.toString());
 				// PinScreen.info.setText("Error retrieving upgrade information, check your connection...!");
@@ -151,7 +154,7 @@ public class AppNetwork {
 		new Thread(updateMe).start();
 		if (!silent) {
 			synchronized (UiApplication.getEventLock()) {
-				Status.show("Searching for Updates...", 5000);
+				Status.show("Searching for Updates...", 4000);
 			}
 		}
 	}

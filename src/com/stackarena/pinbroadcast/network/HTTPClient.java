@@ -5,6 +5,7 @@ import java.io.InputStream;
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
 
+import com.stackarena.pinbroadcast.AppFunctions;
 import com.stackarena.pinbroadcast.PinScreen;
 
 import net.rim.device.api.servicebook.ServiceBook;
@@ -64,7 +65,7 @@ public class HTTPClient  {
 	                    logMessage("Device is a simulator and USE_MDS_IN_SIMULATOR is true");
 	                    PinScreen.info.setText("Device connected to network.");
 	                    connectionString = ";deviceside=false";
-	                    PinScreen.ntwkCon = true;
+	                    AppFunctions.ntwkCon = true;
 	    	 }
 	           
 	    }                                       
@@ -73,7 +74,7 @@ public class HTTPClient  {
 	    else if(WLANInfo.getWLANState() == WLANInfo.WLAN_STATE_CONNECTED)
 	    {
 	    	 synchronized(UiApplication.getEventLock()){
-	    		 PinScreen.ntwkCon = true;
+	    		 AppFunctions.ntwkCon = true;
 	        logMessage("Device is connected via Wifi.");
 	        PinScreen.info.setText("Device is connected via Wifi.");
 	        connectionString = ";interface=wifi";
@@ -100,7 +101,7 @@ public class HTTPClient  {
 	            // otherwise, use the Uid to construct a valid carrier BIBS request
 	            logMessage("uid is: " + carrierUid);
 	            PinScreen.info.setText("Connected to BIS");
-	    		 PinScreen.ntwkCon = true;
+	            AppFunctions.ntwkCon = true;
 	            connectionString = ";deviceside=false;connectionUID="+carrierUid + ";ConnectionType=mds-public";
 	        }
 	        }
@@ -111,7 +112,7 @@ public class HTTPClient  {
 	    { synchronized(UiApplication.getEventLock()){
 	        logMessage("MDS coverage found");
 	        PinScreen.info.setText("MDS coverage found Connecting");
-   		 PinScreen.ntwkCon = true;
+	        AppFunctions.ntwkCon = true;
 	        connectionString = ";deviceside=false";
 	    }
 	    }
@@ -121,7 +122,7 @@ public class HTTPClient  {
 	    { synchronized(UiApplication.getEventLock()){
 	        logMessage("There are no available connection.");
 	        PinScreen.info.setText("Your device is not connected to BIS");
-   		 PinScreen.ntwkCon = false;
+	        AppFunctions.ntwkCon = false;
 	    }
 	    }
 	 

@@ -20,6 +20,7 @@ import net.rim.device.api.ui.FieldChangeListener;
 import net.rim.device.api.ui.Graphics;
 import net.rim.device.api.ui.Manager;
 import net.rim.device.api.ui.MenuItem;
+import net.rim.device.api.ui.Screen;
 import net.rim.device.api.ui.Ui;
 import net.rim.device.api.ui.UiApplication;
 import net.rim.device.api.ui.UiEngineInstance;
@@ -68,16 +69,7 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 	ProgressBar pb;
 	String message;
 	String subject;
-	public static boolean ntwkCon = false;
-	public static boolean userActivated = false;
-	public int trialCount = 0; // the current sent contacts number
-	public int MAX_TRIAL = 500; // maximum contact that u can send msg to on
-								// trial
 	public static Image logoImage, appImage, contactImage, aboutImage;
-	public static String APPID = "1";
-	public static String APPVERSION = "1.9";
-	public static String SERVERURL = "http://apps.stackarena.com/";
-	public static boolean ALLOW_REPLY = false;
 
 	/**
 	 * Creates a new MyScreen object
@@ -107,8 +99,8 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 						apm.invokePermissionsRequest(permRequest);
 					}
 				} catch (Exception e) {
-					//System.exit(0);
-					
+					// System.exit(0);
+
 				}
 			}
 		});
@@ -192,7 +184,7 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 				| LabelField.HCENTER | LabelField.USE_ALL_WIDTH);
 
 		// the Send message button to click
-		btnSend = new ButtonField("Send Message", ButtonField.CONSUME_CLICK
+		btnSend = new ButtonField("Send", ButtonField.CONSUME_CLICK
 				| ButtonField.FIELD_RIGHT);
 		btnSend.setChangeListener(listener);
 
@@ -228,7 +220,7 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 
 		};
 		statusScreen.add(colFMgr);
-		
+
 		// textbox for from
 		from = new CustomTextBox();
 		from.height = 45;
@@ -249,6 +241,7 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 		msgs.topPadding = 8;
 		msgs.bottomMargin = 5;
 		msgs.editField.setMaxSize(5000);
+		msgs.bottomMargin = 10;
 
 		// add everything to the screen now
 		vfm.add(header);
@@ -271,7 +264,7 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 				| LabelField.USE_ALL_WIDTH);
 		lblFrom.setMargin(10, 0, 0, msgs.leftMargin);
 		lblFrom.setFont(lblFrom.getFont().derive(Font.STYLE_BOLD));
-		
+
 		lblSubject = new LabelField("Subject:", LabelField.ELLIPSIS
 				| LabelField.USE_ALL_WIDTH);
 		lblSubject.setMargin(10, 0, 0, msgs.leftMargin);
@@ -374,65 +367,36 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 		// get trial file -> if not exist, create and display alert for info
 		// if trial file exist, update trialcount var to trial file val
 		// set trial text number too
-		if (!userActivated) {
-			FileStuffs fs = new FileStuffs();
-			boolean exists = fs.getTrialFile();
-			if (exists) {
+
+		FileStuffs fs = new FileStuffs();
+		boolean exists = fs.getTrialFile();
+		if (exists) {
+			try {
 				String fcontent = fs.getTrialFileContent();
-				trialCount = Integer.parseInt(fcontent);
-				final int lft = MAX_TRIAL - trialCount;
+				AppFunctions.trialCount = Integer.parseInt(fcontent);
 				UiApplication.getUiApplication().invokeLater(new Runnable() {
 					public void run() {
-						lblTrial.setText("Trial Messages: " + lft);
+						lblTrial.setText("Messages Left: "
+								+ AppFunctions.formatNumber(
+										AppFunctions.trialCount, 0, ","));
 					}
 				});
-
-			} else {
-
-				UiApplication.getUiApplication().invokeLater(new Runnable() {
-					public void run() {
-						Dialog.inform("It seems you have not yet subscribed or this is your first time of using Pin Broadcast. If you have already subscribed, goto the menu and select 'Verify Account' to validate your subscription. \n\nYou can still try the app for free to send up to "
-								+ MAX_TRIAL
-								+ " messages. \n\nSelect the 'Subscribe' menu for information on subscription.");
-
-					}
-				});
-				final int lft = MAX_TRIAL - trialCount;
-				UiApplication.getUiApplication().invokeLater(new Runnable() {
-					public void run() {
-						lblTrial.setText("Trial Messages: " + lft);
-					}
-				});
-				// fs.createTrialFile();
-
-				trialUpdate(trialCount);
+			} catch (Exception e) {
 			}
 
-		}
+		} else {
 
-	}
-
-	// update trial file
-	public void trialUpdate(final int trialVal) {
-		// update trial text number too
-		Runnable trlupdt = new Runnable() {
-			public void run() {
-				try {
-				} catch (final Exception e) {
+			UiApplication.getUiApplication().invokeLater(new Runnable() {
+				public void run() {
+					lblTrial.setText("Messages Left: "
+							+ AppFunctions.formatNumber(AppFunctions.MAX_TRIAL,
+									0, ","));
 				}
-				FileStuffs fs = new FileStuffs();
-				fs.updateTrialFile(trialVal);
-				final int lft = MAX_TRIAL - trialVal;
-				UiApplication.getUiApplication().invokeLater(new Runnable() {
-					public void run() {
-						lblTrial.setText("Trial Messages: " + lft);
-					}
-				});
+			});
+			// fs.createTrialFile();
 
-			}
-		};
-		// start the thread
-		new Thread(trlupdt).start();
+			AppFunctions.trialUpdate(AppFunctions.MAX_TRIAL);
+		}
 
 	}
 
@@ -506,17 +470,19 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 				System.out.println("send error");
 			}
 			// start wait screen
-			pb = new ProgressBar("Sending message, please wait...", 10, 500);
-			pb.start();
+			UiApplication.getUiApplication().invokeLater(new Runnable() {
+				public void run() {
+					pb = new ProgressBar("Sending message, please wait...", 10,
+							500);
+					pb.start();
+				}
+			});
 			// convert the vector array pins to normal array
 			String[] arrayPins = new String[ContactArray.size()];
 			ContactArray.copyInto(arrayPins);
 			// start to send the message now
 			PinSender ps = new PinSender();
-			if (!userActivated) {
-				message = message
-						+ "\n\nSent with Pin Broadcast (http://apps.stackarena.com/)";
-			}
+
 			boolean resp = ps.SendMessage(arrayPins, subject, message);
 
 			// findout what the server says while sending message
@@ -547,12 +513,19 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 					_labelField.setText("No file selected.");
 				}
 			});
-			if (!userActivated) {
-				trialCount = trialCount + arrayPins.length;
-				// update the trial file
 
-				trialUpdate(trialCount);
-			}
+			AppFunctions.trialCount = AppFunctions.trialCount
+					- arrayPins.length;
+			// update the trial file
+			AppFunctions.trialUpdate(AppFunctions.trialCount);
+
+			UiApplication.getUiApplication().invokeLater(new Runnable() {
+				public void run() {
+					lblTrial.setText("Messages Left: "
+							+ AppFunctions.formatNumber(
+									AppFunctions.trialCount, 0, ","));
+				}
+			});
 
 			System.out.println("pins:" + arrayPins.length);
 			// remove wait screen
@@ -569,41 +542,42 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 		hc.getConnectionString();
 
 		// find out if the user has a network connection
-		if (!ntwkCon) {
+		if (!AppFunctions.ntwkCon) {
 			UiApplication.getUiApplication().invokeLater(new Runnable() {
 				public void run() {
 					Dialog.inform("Please check your network, Pin Broadcast requires BIS or Wifi");
 					info.setText("Check your network connection");
 				}
 			});
-		} else if (!userActivated && trialCount > MAX_TRIAL) {
+		} else if (AppFunctions.trialCount < 1) {
 			// user not activated and trial exceeded max
 			UiApplication.getUiApplication().invokeLater(new Runnable() {
 				public void run() {
-					Dialog.inform("You have exceeded the number of messages you can send. ("
-							+ MAX_TRIAL
-							+ "). Please subscribe. Select the 'Subscribe' menu for information on subscription. Select 'Verify Account' on the menu after subscription to send unlimited messages.");
-					info.setText("Trial number exceeded.");
+					Dialog.inform("You have exceeded the number of messages you can send. You have "
+							+ AppFunctions.trialCount
+							+ " left. Please Buy more messages by selecting the 'Buy Pin Message' menu for information on subscription. Select 'Verify Account' on the menu after subscription to send more messages.");
+					info.setText("Message number exceeded.");
 				}
 			});
 
-		} else if (!userActivated
-				&& ((trialCount + ContactArray.size()) > MAX_TRIAL)) {
-			final int avl = MAX_TRIAL - trialCount;
+		} else if (ContactArray.size() > AppFunctions.trialCount) {
 			// user not activated and copied contact exceeds max
 			UiApplication.getUiApplication().invokeLater(new Runnable() {
 				public void run() {
-					Dialog.inform("The contacts in your message exceeds what you have left for trial ("
-							+ avl
+					Dialog.inform("The contacts in your message exceeds what you have left ("
+							+ AppFunctions.formatNumber(
+									AppFunctions.trialCount, 0, ",")
 							+ "). Please subscribe and select 'Verify Account' on the menu for unlimited contacts or reduce the number of your contacts to "
-							+ avl);
+							+ AppFunctions.formatNumber(
+									AppFunctions.trialCount, 0, ","));
 					// info.setText("Trial number exceeded.");
 				}
 			});
 
 		} else {
 
-			if (message.length() < 5 || subject.length() < 3 || from.getText().length() < 2 || FileSel == null) {
+			if (message.length() < 5 || subject.length() < 3
+					|| from.getText().length() < 2 || FileSel == null) {
 				UiApplication.getUiApplication().invokeLater(new Runnable() {
 					public void run() {
 						Dialog.inform("Please verify that From, Subject, Message and your Contact File has been entered properly before sending this message.");
@@ -628,27 +602,25 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 			}
 		});
 		menu.addSeparator();
-		if (!userActivated) {
-			menu.add(new MenuItem("Subscribe", 10, 220) {
-				public void run() {
-					// goto weblink on browser
-					WebIcon webIcon = new WebIcon();
-					webIcon.launchBrowser(webIcon.BIS_BROWSER, SERVERURL
-							+ "subscribe/");
-				}
-			});
-		}
-		if (!userActivated) {
-			menu.add(new MenuItem("Verify Account", 200000, 0) {
-				public void run() {
-					// create a new instance of the network class and display
-					// response for verification
-					AppNetwork AppN = new AppNetwork();
-					AppN.silent = false;
-					AppN.Verification();
-				}
-			});
-		}
+
+		menu.add(new MenuItem("Buy Pin Message", 10, 220) {
+			public void run() {
+				// goto weblink on browser
+				WebIcon webIcon = new WebIcon();
+				webIcon.launchBrowser(webIcon.BIS_BROWSER,
+						AppFunctions.SERVERURL + "pricing/");
+			}
+		});
+
+		menu.add(new MenuItem("Verify Account", 200000, 0) {
+			public void run() {
+				// create a new instance of the network class and display
+				// response for verification
+				AppNetwork AppN = new AppNetwork();
+				AppN.silent = false;
+				AppN.Verification();
+			}
+		});
 
 		menu.add(new MenuItem("Update App", 200100, 10) {
 			public void run() {
@@ -661,14 +633,26 @@ public final class PinScreen extends MainScreen implements FilePicker.Listener,
 		});
 		menu.add(new MenuItem("About", 200200, 10) {
 			public void run() {
-				String abt = "Pin Broadcast helps you send bulk PIN messages to your contacts. You can send a message to 30,000+ contacts at once.\n\n"
-						+ "Usage:\n"
-						+ "Create a text file (.txt) with each Blackberry PIN on a single line, store the file on your phone and select the file when sending a message from Pin Broadcast."
-						+ "\n\nVisit our website or send us an email for subscription inquiries or select 'Subscribe' on the menu."
-						+ "\n\nStackArena. info@stackarena.com, http://apps.stackarena.com/";
-				Dialog.inform(abt);
+				Screen about_screen = new AboutDialog();
+				pushtheScreen(about_screen);
 			}
 		});
 	}
 
+	public void pushtheScreen(final Screen nextScreen) {
+		final UiApplication ui = UiApplication.getUiApplication();
+		// final Screen currentScreen = ui.getActiveScreen();
+
+		if (UiApplication.isEventDispatchThread()) {
+			// ui.popScreen(currentScreen);
+			ui.pushScreen(nextScreen);
+		} else {
+			ui.invokeLater(new Runnable() {
+				public void run() {
+					// ui.popScreen(currentScreen);
+					ui.pushScreen(nextScreen);
+				}
+			});
+		}
+	}
 }

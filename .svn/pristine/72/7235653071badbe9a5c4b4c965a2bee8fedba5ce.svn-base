@@ -1,0 +1,11 @@
+MIDlet-Name: Pin Broadcast
+MIDlet-Version: 1.1
+MIDlet-Vendor: StackArena
+MIDlet-Description: Send thousands of Bulk Pin messages easily
+MIDlet-Jar-URL: Pin Broadcast.jar
+MIDlet-Jar-Size: 0
+MicroEdition-Profile: MIDP-2.0
+MicroEdition-Configuration: CLDC-1.1
+MIDlet-1: Pin Broadcast,logo.png,
+RIM-MIDlet-Flags-1: 0
+
